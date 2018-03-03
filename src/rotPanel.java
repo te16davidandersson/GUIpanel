@@ -12,6 +12,7 @@ public class rotPanel {
     private JButton nyButton;
     private JButton oppnaButton;
     private JButton sparaButton;
+    private String filePath;
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("rotPanel");
@@ -28,39 +29,19 @@ public class rotPanel {
         sparasomButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String filnamn = JOptionPane.showInputDialog(null, "Vad ska filen heta?");
-                JFileChooser fc = new JFileChooser();
-                int r = fc.showOpenDialog(null);
-                fc.getSelectedFile();
-
-                BufferedWriter writer = null;
-
-                try {
-                    PrintWriter utström = new PrintWriter
-                            (new BufferedWriter
-                                    (new OutputStreamWriter
-                                            (new FileOutputStream(fc + filnamn + ".txt"))));
-                    utström.println(textArea1.getText());
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
-                }
+                saveAsDialog();
             }
         });
-        oppnaButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JButton open = new JButton();
-                JFileChooser fc = new JFileChooser();
-                int result = fc.showOpenDialog(null);
-                String filename = fc.getSelectedFile().getAbsolutePath();
-                try {
-                    Scanner in = new Scanner(fc.getSelectedFile());
-                    while (in.hasNext()) {
-                        textArea1.setText(in.nextLine());
-                    }
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
+        oppnaButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.showOpenDialog(null);
+            try {
+                Scanner in = new Scanner(fileChooser.getSelectedFile());
+                while (in.hasNext()) {
+                    textArea1.setText(in.nextLine());
                 }
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
             }
         });
         nyButton.addActionListener(new ActionListener() {
@@ -72,25 +53,35 @@ public class rotPanel {
         sparaButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String filnamn = JOptionPane.showInputDialog(null, "Vad ska filen heta?");
-
-                BufferedWriter writer = null;
-
-                try {
-                    File logFile = new File(filnamn);
-                    System.out.println("Sparade filen som: " + logFile.getAbsolutePath());
-
-                    writer = new BufferedWriter(new FileWriter(logFile));
-                    writer.write(textArea1.getText());
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                } finally {
-                    try {
-                        writer.close();
-                    } catch (IOException e1) {
+                if (filePath == null) {
+                    saveAsDialog();
+                } else {
+                    try
+                            (PrintWriter output = new PrintWriter
+                                    (new BufferedWriter
+                                            (new OutputStreamWriter
+                                                    (new FileOutputStream(filePath))))) {
+                        output.println(textArea1.getText());
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                     }
                 }
             }
         });
+    }
+
+    private void saveAsDialog() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.showSaveDialog(null);
+        String filePath = fileChooser.getSelectedFile().getPath() + ".txt";
+        try (PrintWriter output = new PrintWriter
+                (new BufferedWriter
+                        (new OutputStreamWriter
+                                (new FileOutputStream(filePath))))) {
+            output.println(textArea1.getText());
+            this.filePath = filePath;
+        } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
+        }
     }
 }
